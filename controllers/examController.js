@@ -157,13 +157,59 @@ exports.exportExamToPDF = async (req, res) => {
       return res.status(404).json({ message: 'Sınav bulunamadı' });
     }
     
-    // In a real implementation, we would generate a PDF here
-    // For now, we'll just return the exam data
-    res.status(200).json({
-      message: 'PDF oluşturma özelliği yakında eklenecek',
-      exam
+    // PDF oluşturmak için PDFKit kullanacağız
+    const PDFDocument = require('pdfkit');
+    const doc = new PDFDocument({ margin: 50 });
+    
+    // Content-Type header'ı ayarla
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=${exam.title.replace(/\s+/g, '_')}.pdf`);
+    
+    // PDF'i doğrudan response'a gönder
+    doc.pipe(res);
+    
+    // PDF başlığı ve bilgileri
+    doc.fontSize(25).text(exam.title, { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(14).text(`Seviye: ${exam.level}`, { align: 'center' });
+    doc.fontSize(14).text(`Konu: ${exam.subject}`, { align: 'center' });
+    doc.fontSize(14).text(`Süre: ${exam.duration} dakika`, { align: 'center' });
+    doc.moveDown();
+    
+    if (exam.description) {
+      doc.fontSize(12).text(exam.description, { align: 'center' });
+      doc.moveDown();
+    }
+    
+    // Çizgi çiz
+    doc.moveTo(50, doc.y).lineTo(doc.page.width - 50, doc.y).stroke();
+    doc.moveDown();
+    
+    // Soruları ekle
+    exam.questions.forEach((question, index) => {
+      doc.fontSize(14).text(`Soru ${index + 1}: ${question.text}`);
+      doc.moveDown(0.5);
+      
+      // Seçenekleri ekle (eğer varsa)
+      if (question.options && question.options.length > 0) {
+        question.options.forEach(option => {
+          doc.fontSize(12).text(`  ${option}`);
+        });
+        doc.moveDown(0.5);
+      }
+      
+      // Yeni sayfaya geç (her 3 sorudan sonra veya sayfa doluysa)
+      if ((index + 1) % 3 === 0 && index < exam.questions.length - 1) {
+        doc.addPage();
+      } else {
+        doc.moveDown();
+      }
     });
+    
+    // PDF'i sonlandır
+    doc.end();
   } catch (error) {
+    console.error('PDF oluşturma hatası:', error);
     res.status(500).json({ message: error.message });
   }
 };

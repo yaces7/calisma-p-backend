@@ -22,6 +22,6 @@ router.delete('/:id', examController.deleteExam);
 router.post('/generate', examController.generateExamWithAI);
 
 // Export PDF
-router.get('/:id/export', examController.exportExamToPDF);
+router.get('/:id/pdf', examController.exportExamToPDF);
 
 module.exports = router;
