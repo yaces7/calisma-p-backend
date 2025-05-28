@@ -160,19 +160,30 @@ exports.generateExamWithAI = async (req, res) => {
   try {
     const { level, subject, questionCount, questionTypes } = req.body;
     
+    console.log('Request body:', req.body);
+    
     if (!level || !subject || !questionCount) {
+      console.log('Eksik parametreler:', { level, subject, questionCount });
       return res.status(400).json({ message: 'Seviye, konu ve soru sayısı gereklidir' });
     }
     
     console.log(`Soru üretiliyor: ${level} seviyesinde ${subject} konusu için ${questionCount} adet soru`);
     
-    // Open Trivia Database API'den soruları çek
-    const questions = await fetchQuestionsFromAPI(questionCount, subject, level);
-    
-    console.log(`${questions.length} adet soru çekildi`);
-    
-    if (questions.length === 0) {
-      return res.status(500).json({ message: 'API\'den soru çekilemedi. Lütfen daha sonra tekrar deneyin.' });
+    let questions = [];
+    try {
+      // Open Trivia Database API'den soruları çek
+      questions = await fetchQuestionsFromAPI(questionCount, subject, level);
+      
+      console.log(`${questions.length} adet soru çekildi`);
+      
+      if (questions.length === 0) {
+        return res.status(500).json({ message: 'API\'den soru çekilemedi. Lütfen daha sonra tekrar deneyin.' });
+      }
+      
+      console.log('Sorular başarıyla çekildi');
+    } catch (apiError) {
+      console.error('API çağrısı hatası:', apiError);
+      return res.status(500).json({ message: 'Dış API ile iletişim kurulurken bir hata oluştu', error: apiError.message });
     }
     
     // Create a new exam with the generated questions
