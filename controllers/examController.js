@@ -6,6 +6,7 @@ const axios = require('axios');
 const fetchQuestionsFromAPI = async (questionCount, category, difficulty) => {
   try {
     console.log(`Trivia API'den sorular çekiliyor: ${questionCount} adet soru, kategori: ${category}, zorluk: ${difficulty}`);
+    console.log('questionCount tipi:', typeof questionCount);
     
     // Kategori eşleştirmeleri
     const categoryMapping = {
@@ -26,12 +27,15 @@ const fetchQuestionsFromAPI = async (questionCount, category, difficulty) => {
       'Zor': 'hard'
     };
     
+    // Sayıya çevir
+    const amount = parseInt(questionCount) || 5; // Eğer dönüştürme başarısız olursa varsayılan 5 kullan
+    
     // API parametrelerini hazırla
     const apiCategory = categoryMapping[category] || '';
     const apiDifficulty = difficultyMapping[difficulty] || '';
     
     // Open Trivia Database API'ye istek gönder
-    const apiUrl = `https://opentdb.com/api.php?amount=${questionCount}`
+    const apiUrl = `https://opentdb.com/api.php?amount=${amount}`
       + (apiCategory ? `&category=${apiCategory}` : '')
       + (apiDifficulty ? `&difficulty=${apiDifficulty}` : '')
       + '&type=multiple';
@@ -39,6 +43,8 @@ const fetchQuestionsFromAPI = async (questionCount, category, difficulty) => {
     console.log(`API URL: ${apiUrl}`);
     
     const response = await axios.get(apiUrl);
+    console.log('API yanıtı alındı:', response.status);
+    console.log('API yanıt kodu:', response.data.response_code);
     
     if (response.data.response_code !== 0) {
       throw new Error(`API hatası: ${response.data.response_code}`);
