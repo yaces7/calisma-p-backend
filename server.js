@@ -17,21 +17,13 @@ const authRoutes = require('./routes/authRoutes');
 // Initialize express app
 const app = express();
 
-// CORS ayarları
-const corsOptions = {
-  origin: ['https://calisma-p.vercel.app', 'http://localhost:5173', 'http://localhost:3000'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-};
-
 // Middleware
-app.use(cors(corsOptions));
-
-// OPTIONS istekleri için özel bir middleware
-app.options('*', cors(corsOptions));
+app.use(cors({
+  origin: true, // Tüm originlere izin ver
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use(bodyParser.json());
 app.use(express.json());
