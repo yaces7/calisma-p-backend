@@ -107,14 +107,26 @@ exports.generateExamWithAI = async (req, res) => {
     `;
     
     // Call OpenAI API
-    const response = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: "Sen bir eğitim uzmanısın ve kaliteli sınav soruları oluşturuyorsun." },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.7,
-    });
+    let response;
+    try {
+      console.log('OpenAI API isteği gönderiliyor...');
+      response = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo", // gpt-4 yerine daha uyumlu olan gpt-3.5-turbo kullan
+        messages: [
+          { role: "system", content: "Sen bir eğitim uzmanısın ve kaliteli sınav soruları oluşturuyorsun." },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.7,
+      });
+      console.log('OpenAI API yanıtı alındı');
+    } catch (openaiError) {
+      console.error('OpenAI API hatası:', openaiError);
+      return res.status(500).json({ 
+        message: 'OpenAI API ile iletişim kurulurken bir hata oluştu', 
+        error: openaiError.message,
+        details: openaiError.response?.data || 'Detay yok'
+      });
+    }
     
     // Parse the response
     let questions = [];
